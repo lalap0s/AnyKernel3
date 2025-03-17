@@ -1,0 +1,205 @@
+# Luuvy Kernel Tweak
+# Spectrum and Franco kernel manager
+# Ramdisk file for profile based kernel management
+# Implimentation inspired by Franco's fku profiles
+
+# Initialization
+
+on init
+ # zram madness
+    exec u:r:init:s0 -- /system/bin/swapoff /dev/block/zram0
+    exec u:r:su:s0 -- /system/bin/swapoff /dev/block/zram0
+    exec u:r:magisk:s0 -- /system/bin/swapoff /dev/block/zram0
+    exec u:r:supersu:s0 -- /system/bin/swapoff /dev/block/zram0
+    write /sys/block/zram0/reset 1
+    ## write /sys/block/zram0/comp_algorithm lz4
+    write /sys/block/zram0/disksize 2147483648
+    ##write /sys/block/zram0/max_comp_streams 1
+
+on post-fs
+    exec u:r:init:s0 -- /system/bin/mkswap /dev/block/zram0
+    exec u:r:init:s0 -- /system/bin/swapon /dev/block/zram0
+    exec u:r:su:s0 -- /system/bin/mkswap /dev/block/zram0
+    exec u:r:su:s0 -- /system/bin/swapon /dev/block/zram0
+    exec u:r:magisk:s0 -- /system/bin/mkswap /dev/block/zram0
+    exec u:r:magisk:s0 -- /system/bin/swapon /dev/block/zram0
+    exec u:r:supersu:s0 -- /system/bin/mkswap /dev/block/zram0
+    exec u:r:supersu:s0 -- /system/bin/swapon /dev/block/zram0
+
+on property:sys.boot_completed=1
+    exec u:r:init:s0 -- /system/bin/sh /system/etc/init/init.spectrum.sh
+    exec u:r:init:s0 root root -- /system/bin/sh /system/etc/init/init.spectrum.sh
+    exec u:r:su:s0 root root -- /system/bin/sh /system/etc/init/init.spectrum.sh
+    exec u:r:magisk:s0 root root -- /system/bin/sh /system/etc/init/init.spectrum.sh
+    exec u:r:supersu:s0 root root -- /system/bin/sh /system/etc/init/init.spectrum.sh
+
+# Luuvy Profiles
+# Balance (default profile)
+on property:persist.luuvy.profile=balance
+	#/* Max CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1401000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	#/* Min CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 960000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	 #/* Max CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq 1094400
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	#/* Min CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 768000
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	#/*lainnya*/
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+
+	  chmod 644 /sys/module/workqueue/parameters/power_efficient
+	  write /sys/module/workqueue/parameters/power_efficient y
+
+	# GPU
+	  write /sys/class/kgsl/kgsl-3d0/max_gpuclk 475000000
+	  write /sys/class/kgsl/kgsl-3d0/min_clock_mhz 216
+	  write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
+	  write /sys/kernel/gpu/gpu_min_clock 216
+	  write /sys/kernel/gpu/gpu_max_clock 475
+
+	# Misc
+	  ##write /proc/sys/net/ipv4/tcp_congestion_control westwood
+
+# Performance
+on property:persist.luuvy.profile=performance
+	  #/* Max CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1401000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	#/* Min CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 960000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	 #/* Max CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq 1094400
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	#/* Min CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 768000
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	#/*lainnya*/
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor performance
+	  chmod 644 /sys/module/workqueue/parameters/power_efficient
+	  write /sys/module/workqueue/parameters/power_efficient N
+
+	# GPU
+	  write /sys/class/kgsl/kgsl-3d0/max_gpuclk 475000000
+	  write /sys/class/kgsl/kgsl-3d0/min_clock_mhz 300
+	  write /sys/class/kgsl/kgsl-3d0/devfreq/governor performance
+	  write /sys/kernel/gpu/gpu_min_clock 300
+	  write /sys/kernel/gpu/gpu_max_clock 475
+
+	# Misc
+	  ##write /proc/sys/net/ipv4/tcp_congestion_control westwood
+
+# Battery
+on property:persist.luuvy.profile=battery
+	  #/* Max CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1401000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	#/* Min CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 960000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	 #/* Max CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq 1094400
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	#/* Min CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 768000
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	#/*lainnya*/
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor powersave
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor powersave
+	  chmod 644 /sys/module/workqueue/parameters/power_efficient
+	  write /sys/module/workqueue/parameters/power_efficient Y
+
+	# GPU
+	  write /sys/class/kgsl/kgsl-3d0/max_gpuclk 450000000
+	  write /sys/class/kgsl/kgsl-3d0/min_clock_mhz 216
+	  write /sys/class/kgsl/kgsl-3d0/devfreq/governor powersave
+	  write /sys/kernel/gpu/gpu_min_clock 216
+	  write /sys/kernel/gpu/gpu_max_clock 450
+
+	# Misc
+	  ##write /proc/sys/net/ipv4/tcp_congestion_control westwood
+
+# Gaming
+on property:persist.luuvy.profile=gaming
+	  #/* Max CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1401000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+	#/* Min CPU control Big*/
+	  chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 960000
+	  chmod 444 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	 #/* Max CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq 1094400
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
+	#/* Min CPU control little*/
+	  chmod 644 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 768000
+	  chmod 444 /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+	#/*lainnya*/
+	  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+	  write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor performance
+	  chmod 644 /sys/module/workqueue/parameters/power_efficient
+	  write /sys/module/workqueue/parameters/power_efficient N
+
+	# GPU
+	  write /sys/class/kgsl/kgsl-3d0/max_gpuclk 475000000
+	  write /sys/class/kgsl/kgsl-3d0/min_clock_mhz 375
+	  write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
+	  write /sys/kernel/gpu/gpu_min_clock 375
+	  write /sys/kernel/gpu/gpu_max_clock 475
+
+	# Misc
+	  ##write /proc/sys/net/ipv4/tcp_congestion_control westwood
+
+
+# Profile bridges: Spectrum
+# Balanced
+on property:persist.spectrum.profile=0
+	setprop persist.luuvy.profile balance
+
+# Battery
+on property:persist.spectrum.profile=2
+	setprop persist.luuvy.profile battery
+
+# Performance
+on property:persist.spectrum.profile=1
+	setprop persist.luuvy.profile performance
+
+# Gaming
+on property:persist.spectrum.profile=3
+	setprop persist.luuvy.profile gaming
+
+
+# Profile bridges: Franco Kernel Manager
+# Update the Spectrum profile setting
+# Powersave
+on property:fku.perf.profile=0
+	setprop persist.spectrum.profile 2
+
+# Balance
+on property:fku.perf.profile=1
+	setprop persist.spectrum.profile 0
+
+# Performance
+on property:fku.perf.profile=2
+	setprop persist.spectrum.profile 1
